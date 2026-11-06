@@ -1,35 +1,91 @@
 # PDP Studio
 
-Public distribution repository for PDP Studio artifacts. This repository hosts
-CLI releases and will also host published GitHub Actions. It does not contain
-the PDP Studio application source code.
-
-## CLI releases
+Public distribution repository for PDP Studio CLI releases and, in the future,
+GitHub Actions. This repository does not contain the PDP Studio application
+source code.
 
 The `pdp` CLI provides command-line access to PDP Studio, including project
 configuration export and import for automation.
 
-No CLI releases are available here yet. Versioned binaries, SHA-256 checksums,
-and release notes will be published on the [Releases page](https://github.com/nuclia/pdp-studio/releases).
-Supported platforms, installation steps, and checksum verification instructions
-will be documented with the first release.
+## Install the CLI
 
-Once installed, explore the CLI with:
+The initial public package targets **macOS on Apple Silicon (ARM64)**.
+Intel macOS, Linux, and Windows packages are not part of this initial release.
+No permanent CLI release is available here yet; the instructions below apply
+once the first release is published.
+
+1. Open [Releases](https://github.com/nuclia/pdp-studio/releases) and choose a
+   version. Read its release notes for requirements and compatibility.
+2. Download both `pdp-v<VERSION>-aarch64-apple-darwin.tar.gz` and its matching
+   `.sha256` file into the same directory.
+3. In that directory, replace `X.Y.Z` below with the selected version:
 
 ```sh
-pdp --version
-pdp --help
-pdp projects --help
+VERSION=X.Y.Z
+ARCHIVE="pdp-v${VERSION}-aarch64-apple-darwin.tar.gz"
+shasum -a 256 -c "$ARCHIVE.sha256"
 ```
 
-Connecting to PDP Studio requires an account and credentials with the appropriate
-permissions. Authentication and getting-started instructions will accompany the
-first release.
+Continue only if checksum verification reports `OK`:
+
+```sh
+tar -xzf "$ARCHIVE"
+mkdir -p "$HOME/.local/bin"
+install -m 755 pdp-aarch64-apple-darwin/pdp "$HOME/.local/bin/pdp"
+export PATH="$HOME/.local/bin:$PATH"
+pdp --version
+pdp --help
+```
+
+Add the same `PATH` setting to your shell startup file if needed.
+Installing another version at this location replaces the existing executable.
+If macOS blocks execution, contact your support channel for approved
+installation guidance; checksum verification is not a substitute for code signing.
+
+## Connect with a NUA key
+
+Create a NUA key in the account owning your project. Ask an account owner to
+grant the key **Platform Manager**, plus project **Reader** access for export
+or **Writer** access for import.
+
+In the terminal you will use, clear any old authentication or context overrides:
+
+```sh
+unset PDP_NUA_KEY PDP_TOKEN PDP_ACCOUNT PDP_API_URL PDP_ZONE
+pdp ctx set --zone ''
+pdp auth apikey --account '<owning-account-uuid>'
+```
+
+Enter the key's **secret value** at the hidden prompt and the region supplied
+for your environment. `--account` is the account UUID, **not the NUA key ID**.
+For a different API environment, also pass `--api-url '<regional-api-url>'`.
+
+```sh
+pdp ctx show
+pdp auth status
+pdp projects export-config '<source-project-id>' --output-dir ./project-config
+```
+
+Confirm the effective API URL and account in `ctx show` and `auth_type: nua_key`
+in `auth status`. These commands describe local configuration; the export
+checks server access. The export directory must not already exist.
+
+To import, use a key with access to the destination and select its owning account:
+
+```sh
+pdp projects import-config '<destination-project-id>' --input-dir ./project-config
+```
+
+**Import changes destination configuration and may trigger reindexing.**
+Configuration exports do not include resource contents or operational data.
+Treat exported files as private project information.
+
+For interactive browser authentication instead, use `pdp auth login`.
+Run `pdp <command> --help` for command-specific options.
 
 ## GitHub Actions
 
-GitHub Actions for project configuration automation are planned but are not
-published yet.
+Published GitHub Actions are planned separately; none are available here yet.
 
 ## Support
 
