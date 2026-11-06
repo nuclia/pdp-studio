@@ -9,29 +9,39 @@ configuration export and import for automation.
 
 ## Install the CLI
 
-The initial public package targets **macOS on Apple Silicon (ARM64)**.
-Intel macOS, Linux, and Windows packages are not part of this initial release.
+The initial release is planned to include:
+
+| Platform | Architecture | Package target |
+|---|---|---|
+| macOS | Apple Silicon / ARM64 | `aarch64-apple-darwin` |
+| macOS | Intel / x86-64 | `x86_64-apple-darwin` |
+| Linux (glibc 2.39+) | x86-64 | `x86_64-unknown-linux-gnu` |
+| Linux (glibc 2.39+) | ARM64 | `aarch64-unknown-linux-gnu` |
+
+Windows packages are not included.
 No permanent CLI release is available here yet; the instructions below apply
 once the first release is published.
 
 1. Open [Releases](https://github.com/nuclia/pdp-studio/releases) and choose a
    version. Read its release notes for requirements and compatibility.
-2. Download both `pdp-v<VERSION>-aarch64-apple-darwin.tar.gz` and its matching
+2. Download both `pdp-v<VERSION>-<TARGET>.tar.gz` and its matching
    `.sha256` file into the same directory.
-3. In that directory, replace `X.Y.Z` below with the selected version:
+3. In that directory, set the selected version and target (Apple Silicon shown):
 
 ```sh
 VERSION=X.Y.Z
-ARCHIVE="pdp-v${VERSION}-aarch64-apple-darwin.tar.gz"
+TARGET=aarch64-apple-darwin
+ARCHIVE="pdp-v${VERSION}-${TARGET}.tar.gz"
 shasum -a 256 -c "$ARCHIVE.sha256"
 ```
 
+On Linux, use `sha256sum -c "$ARCHIVE.sha256"` instead.
 Continue only if checksum verification reports `OK`:
 
 ```sh
 tar -xzf "$ARCHIVE"
 mkdir -p "$HOME/.local/bin"
-install -m 755 pdp-aarch64-apple-darwin/pdp "$HOME/.local/bin/pdp"
+install -m 755 "pdp-$TARGET/pdp" "$HOME/.local/bin/pdp"
 export PATH="$HOME/.local/bin:$PATH"
 pdp --version
 pdp --help
